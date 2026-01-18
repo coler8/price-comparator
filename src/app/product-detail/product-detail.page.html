@@ -1,0 +1,114 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home" color="light"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Detalles</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  @if (product(); as p) {
+  <div class="animate__animated animate__fadeIn">
+    <div class="product-header">
+      <div class="product-image-large">
+        <img [src]="p.image" [alt]="p.name" />
+      </div>
+    </div>
+    <div class="ion-padding content-body">
+      <span class="category-tag">{{ p.category }}</span>
+      <h1 class="product-title">{{ p.name }}</h1>
+      <p class="unit-text">Precio por {{ p.unit }}</p>
+      <p class="description">{{ p.description }}</p>
+
+      <h2 class="comparison-title">Comparativa de Precios</h2>
+      <div class="price-comparison-list">
+        @for (priceItem of p.prices; track priceItem.supermarket) {
+        <div class="glass-card price-detail-card">
+          <div class="supermarket-info">
+            <span
+              class="supermarket-tag"
+              [ngClass]="priceItem.supermarket.toLowerCase()"
+            >
+              {{ priceItem.supermarket }}
+            </span>
+          </div>
+          <div class="price-info">
+            <span class="actual-price"
+              >{{ priceItem.price | number : '1.2-2' }}€</span
+            >
+            @if (getCheapest()?.supermarket === priceItem.supermarket) {
+            <span class="savings-tag"> Mejor opción </span>
+            }
+          </div>
+        </div>
+        }
+      </div>
+
+      @defer (on timer(500ms)) {
+      <!-- Comparison Chart Placeholder -->
+      <div class="glass-card chart-container ion-margin-top ion-padding">
+        <h3 style="margin-top: 0; font-size: 1rem">Evolución de precios</h3>
+        <div
+          style="
+            height: 100px;
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            padding: 20px 0;
+          "
+        >
+          <div
+            style="
+              flex: 1;
+              height: 40%;
+              background: var(--secondary-gradient);
+              border-radius: 4px;
+            "
+          ></div>
+          <div
+            style="
+              flex: 1;
+              height: 60%;
+              background: var(--secondary-gradient);
+              border-radius: 4px;
+            "
+          ></div>
+          <div
+            style="
+              flex: 1;
+              height: 55%;
+              background: var(--secondary-gradient);
+              border-radius: 4px;
+            "
+          ></div>
+          <div
+            style="
+              flex: 1;
+              height: 80%;
+              background: var(--secondary-gradient);
+              border-radius: 4px;
+            "
+          ></div>
+          <div
+            style="
+              flex: 1;
+              height: 100%;
+              background: var(--primary-gradient);
+              border-radius: 4px;
+            "
+          ></div>
+        </div>
+        <p style="font-size: 0.7rem; color: #94a3b8; text-align: center">
+          Datos de los últimos 30 días
+        </p>
+      </div>
+      } @placeholder {
+      <div class="ion-padding ion-text-center">
+        <p>Preparando gráfica...</p>
+      </div>
+      }
+    </div>
+  </div>
+  }
+</ion-content>

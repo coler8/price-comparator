@@ -1,0 +1,111 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>
+      <span class="gradient-text" style="font-size: 1.5rem">Coomparador</span>
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button color="light">
+        <ion-icon slot="icon-only" name="person-circle-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="ion-padding">
+    <h1 style="font-weight: 700; margin-bottom: 20px">
+      Encuentra el mejor <br />
+      <span class="gradient-text">precio hoy</span>
+    </h1>
+
+    <!-- Search Bar -->
+    <div class="glass-card" style="margin-bottom: 24px; padding: 4px">
+      <ion-searchbar
+        animated="true"
+        placeholder="¿Qué buscas?"
+        (ionInput)="onSearch($event)"
+        class="custom-searchbar"
+      >
+      </ion-searchbar>
+    </div>
+
+    <!-- Category Selector -->
+    <div class="category-scroll ion-margin-bottom">
+      @for (cat of categories; track cat) {
+      <div
+        [class.active]="selectedCategory() === cat"
+        class="category-chip"
+        (click)="selectedCategory.set(cat)"
+      >
+        {{cat}}
+      </div>
+      }
+    </div>
+
+    <!-- Product Grid -->
+    <h2 style="font-weight: 600; margin-top: 32px; margin-bottom: 16px">
+      Populares
+    </h2>
+
+    <ion-grid fixed>
+      <ion-row>
+        @defer (on viewport) { @for (product of filteredProducts(); track
+        product.id) {
+        <ion-col size="12" size-md="6">
+          <div
+            class="glass-card product-card"
+            [routerLink]="['/product-detail', product.id]"
+          >
+            <ion-row>
+              <ion-col size="4">
+                <div class="product-image-container">
+                  <img [src]="product.image" [alt]="product.name" />
+                </div>
+              </ion-col>
+              <ion-col size="8" class="ion-padding-start">
+                <h3 style="margin-top: 0; font-weight: 600; font-size: 1.1rem">
+                  {{product.name}}
+                </h3>
+                <p style="font-size: 0.8rem; color: #94a3b8; margin: 4px 0">
+                  {{product.category}} • {{product.unit}}
+                </p>
+                <div class="price-list">
+                  @for (p of product.prices; track p.supermarket) {
+                  <div class="price-item">
+                    <span
+                      class="supermarket-tag"
+                      [ngClass]="p.supermarket.toLowerCase()"
+                    >
+                      {{p.supermarket}}
+                    </span>
+                    <span
+                      class="price-value"
+                      [class.cheapest]="getCheapest(product).supermarket === p.supermarket"
+                    >
+                      {{p.price | number:'1.2-2'}}€
+                    </span>
+                  </div>
+                  }
+                </div>
+                @if (getCheapest(product); as cheapest) {
+                <div class="cheapest-badge">
+                  <ion-icon name="sparkles" color="warning"></ion-icon>
+                  <span>
+                    Más barato en <strong>{{cheapest.supermarket}}</strong>
+                  </span>
+                </div>
+                }
+              </ion-col>
+            </ion-row>
+          </div>
+        </ion-col>
+        } } @placeholder {
+        <div class="ion-padding ion-text-center">
+          <ion-spinner name="crescent"></ion-spinner>
+          <p>Cargando productos...</p>
+        </div>
+        }
+      </ion-row>
+    </ion-grid>
+  </div>
+</ion-content>
