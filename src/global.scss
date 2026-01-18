@@ -34,37 +34,97 @@
 
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
-@import "@ionic/angular/css/palettes/dark.system.css";
-
-@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap");
 
 :root {
   --ion-font-family: "Outfit", sans-serif;
 
-  /* Primary Gradient */
-  --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-  --secondary-gradient: linear-gradient(135deg, #3b82f6 0%, #2dd4bf 100%);
-  --surface-glass: rgba(255, 255, 255, 0.05);
-  --border-glass: rgba(255, 255, 255, 0.1);
+  /* Mercadona Colors */
+  --mercadona-green: #00aa55;
+  --mercadona-orange: #ffa100;
+
+  /* Lidl Colors */
+  --lidl-blue: #0050aa;
+  --lidl-yellow: #fff000;
+  --lidl-red: #e60a14;
+
+  /* Combined Designer Gradients */
+  --primary-gradient: linear-gradient(
+    135deg,
+    var(--mercadona-green) 0%,
+    var(--lidl-blue) 100%
+  );
+  --secondary-gradient: linear-gradient(
+    135deg,
+    var(--mercadona-orange) 0%,
+    var(--lidl-yellow) 100%
+  );
+  --accent-gradient: linear-gradient(
+    135deg,
+    var(--lidl-red) 0%,
+    var(--mercadona-orange) 100%
+  );
+
+  /* Light Theme Surface Design */
+  --surface-glass: rgba(255, 255, 255, 0.7);
+  --border-glass: rgba(0, 170, 85, 0.1);
+  --card-shadow: 0 10px 30px rgba(0, 80, 170, 0.08);
+  --bg-color: #f8fafc;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
 }
 
 body {
   font-family: "Outfit", sans-serif;
+  color: var(--text-main);
+  background: var(--bg-color);
+  margin: 0;
+}
+
+.falling-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0; /* Above body background, below content */
+  overflow: hidden;
+  opacity: 0.5;
+}
+
+.falling-item {
+  position: absolute;
+  top: -100px;
+  animation: fall linear infinite;
+  user-select: none;
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8))
+    drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+@keyframes fall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  100% {
+    transform: translateY(120vh) rotate(360deg);
+  }
 }
 
 .glass-card {
   background: var(--surface-glass);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border-glass);
-  border-radius: 20px;
+  border-radius: 24px;
   overflow: hidden;
+  box-shadow: var(--card-shadow);
   transition:
-    transform 0.3s ease,
+    transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275),
     box-shadow 0.3s ease;
 
   &:active {
-    transform: scale(0.98);
+    transform: scale(0.97);
   }
 }
 
@@ -73,58 +133,108 @@ body {
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: -0.5px;
 }
 
 .premium-button {
   --background: var(--primary-gradient);
-  --border-radius: 12px;
-  --box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
-  font-weight: 600;
+  --border-radius: 16px;
+  --box-shadow: 0 8px 20px rgba(0, 170, 85, 0.15);
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0.5px;
+  --padding-start: 24px;
+  --padding-end: 24px;
+  transition: var(--ion-all-transition);
+
+  &::part(native) {
+    background: var(--primary-gradient);
+  }
 }
 
 ion-content {
-  --background: #0f172a; /* Deep dark slate */
+  --background: transparent;
+  background: transparent;
+  z-index: 1; /* Above animation */
+
+  &::part(background) {
+    background: transparent;
+  }
 }
 
 ion-toolbar {
   --background: transparent;
   --border-style: none;
+  --color: var(--text-main);
 }
 
 .product-image-container {
+  position: relative;
   width: 100%;
   aspect-ratio: 1/1;
   overflow: hidden;
-  border-radius: 16px;
+  border-radius: 20px;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.03);
+
   img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
-    transition: transform 0.5s ease;
+    object-fit: contain;
+    padding: 12px;
+    transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
   }
+
   &:hover img {
-    transform: scale(1.05);
+    transform: scale(1.1) rotate(2deg);
   }
 }
 
 .supermarket-tag {
-  padding: 4px 8px;
-  border-radius: 8px;
-  font-size: 10px;
-  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 800;
   text-transform: uppercase;
+  letter-spacing: 1px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 
   &.mercadona {
-    background: #2e7d32;
+    background: var(--mercadona-green);
     color: white;
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
+
   &.lidl {
-    background: #ffd600;
-    color: #0050aa;
+    background: var(--lidl-blue);
+    color: var(--lidl-yellow);
+    border: 1px solid var(--lidl-yellow);
   }
+
   &.carrefour {
     background: #0055a4;
     color: white;
   }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 170, 85, 0.1);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--mercadona-green);
 }

@@ -1,8 +1,15 @@
+.main-content-wrapper {
+  background: var(--bg-color);
+  min-height: 100%;
+  border-radius: 0 0 30px 30px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+}
+
 .category-scroll {
   display: flex;
   overflow-x: auto;
   gap: 12px;
-  padding: 4px 0;
+  padding: 8px 0;
   -ms-overflow-style: none;
   scrollbar-width: none;
   &::-webkit-scrollbar {
@@ -11,69 +18,93 @@
 }
 
 .category-chip {
-  padding: 8px 20px;
-  background: var(--surface-glass);
+  padding: 10px 24px;
+  background: white;
   border: 1px solid var(--border-glass);
-  border-radius: 25px;
+  border-radius: 20px;
   white-space: nowrap;
   font-size: 0.9rem;
-  font-weight: 500;
-  transition: all 0.3s ease;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
   cursor: pointer;
 
   &.active {
     background: var(--primary-gradient);
     border-color: transparent;
     color: white;
-    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    box-shadow: 0 8px 20px rgba(0, 170, 85, 0.2);
+    transform: translateY(-2px);
+  }
+
+  &:hover:not(.active) {
+    background: #f1f5f9;
+    color: var(--text-main);
   }
 }
 
 .product-card {
-  padding: 12px;
-  margin-bottom: 16px;
+  padding: 16px;
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 15px 35px rgba(0, 80, 170, 0.1);
+    border-color: rgba(0, 170, 85, 0.3);
+  }
 
   .price-list {
-    margin-top: 10px;
+    margin-top: 12px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
   }
 
   .price-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 2px 0;
   }
 
   .price-value {
-    font-weight: 600;
-    font-size: 1rem;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--text-main);
 
     &.cheapest {
-      color: #4ade80; /* Brighter green */
-      text-decoration: underline;
+      color: var(--mercadona-green);
+      font-size: 1.2rem;
     }
   }
 }
 
 .cheapest-badge {
-  margin-top: 12px;
-  padding: 6px 12px;
-  background: rgba(255, 165, 0, 0.1);
-  border-radius: 10px;
+  margin-top: 16px;
+  padding: 8px 14px;
+  background: rgba(255, 161, 0, 0.1);
+  border: 1px solid rgba(255, 161, 0, 0.2);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.8rem;
-  color: #fbbf24;
+  font-size: 0.85rem;
+  color: #d97706; /* Darker orange for light mode contrast */
+  font-weight: 600;
+
+  ion-icon {
+    font-size: 1.1rem;
+    color: var(--mercadona-orange);
+  }
 }
 
 .custom-searchbar {
   --background: transparent;
-  --color: white;
-  --placeholder-color: #94a3b8;
-  --icon-color: #94a3b8;
-  --clear-button-color: #94a3b8;
+  --color: var(--text-main);
+  --placeholder-color: var(--text-muted);
+  --icon-color: var(--mercadona-green);
+  --clear-button-color: var(--text-muted);
   padding: 0;
+  font-weight: 500;
 }

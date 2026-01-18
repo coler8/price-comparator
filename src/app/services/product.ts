@@ -118,4 +118,35 @@ export class ProductService {
       (prev.price < current.price) ? prev : current
     );
   }
+
+  updateProductPrice(productId: string, supermarket: string, newPrice: number) {
+    this.products.update(products => products.map(p => {
+      if (p.id === productId) {
+        return {
+          ...p,
+          prices: p.prices.map(pr =>
+            pr.supermarket.toLowerCase() === supermarket.toLowerCase()
+              ? { ...pr, price: newPrice }
+              : pr
+          )
+        };
+      }
+      return p;
+    }));
+  }
+
+  addProduct(product: Omit<Product, 'id'>) {
+    const newProduct: Product = {
+      ...product,
+      id: Math.random().toString(36).substr(2, 9),
+    };
+    this.products.update(products => [...products, newProduct]);
+    return newProduct;
+  }
+
+  deleteProduct(id: string) {
+    this.products.update(products => products.filter(p => p.id !== id));
+  }
 }
+
+

@@ -1,3 +1,16 @@
 <ion-app>
+  <div class="falling-container">
+    @for (item of fallingItems; track $index) {
+      <span
+        class="falling-item"
+        [style.left.%]="item.left"
+        [style.animation-delay.s]="item.delay"
+        [style.animation-duration.s]="item.duration"
+        [style.font-size.px]="item.size"
+      >
+        {{ item.emoji }}
+      </span>
+    }
+  </div>
   <ion-router-outlet></ion-router-outlet>
 </ion-app>

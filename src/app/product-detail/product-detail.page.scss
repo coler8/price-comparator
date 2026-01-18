@@ -2,81 +2,104 @@
   position: relative;
   width: 100%;
   height: 35vh;
-  background: #1e293b;
+  background: var(--primary-gradient);
   overflow: hidden;
+
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100px;
+    background: linear-gradient(to top, var(--bg-color), transparent);
+  }
 
   .product-image-large {
     width: 100%;
     height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
     img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      opacity: 0.8;
+      width: auto;
+      max-width: 80%;
+      height: auto;
+      max-height: 80%;
+      object-fit: contain;
+      filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.15));
     }
   }
 }
 
 .content-body {
   margin-top: -30px;
-  background: #0f172a;
-  border-radius: 30px 30px 0 0;
+  background: var(--bg-color);
+  border-radius: 32px 32px 0 0;
   min-height: 60vh;
   position: relative;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.05);
 }
 
 .category-tag {
-  background: rgba(99, 102, 241, 0.1);
-  color: #818cf8;
-  padding: 4px 12px;
+  background: rgba(0, 170, 85, 0.1);
+  color: var(--mercadona-green);
+  padding: 6px 14px;
   border-radius: 20px;
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .product-title {
-  margin: 12px 0 4px 0;
-  font-weight: 700;
-  font-size: 2rem;
-  color: white;
+  margin: 16px 0 6px 0;
+  font-weight: 800;
+  font-size: 2.2rem;
+  color: var(--text-main);
+  letter-spacing: -1px;
 }
 
 .unit-text {
-  color: #94a3b8;
-  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-size: 0.95rem;
   margin-bottom: 24px;
+  font-weight: 500;
 }
 
 .description {
-  color: #cbd5e1;
+  color: var(--text-main);
   line-height: 1.6;
   font-size: 1rem;
   margin-bottom: 32px;
+  opacity: 0.8;
 }
 
 .comparison-title {
-  font-weight: 600;
-  font-size: 1.2rem;
-  margin-bottom: 16px;
+  font-weight: 700;
+  font-size: 1.3rem;
+  margin-bottom: 20px;
+  color: var(--text-main);
 }
 
 .price-comparison-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .price-detail-card {
-  padding: 16px;
+  padding: 20px;
+  background: white;
   display: flex;
   justify-content: space-between;
   align-items: center;
 
   .actual-price {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: white;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-main);
   }
 
   .price-info {
@@ -87,13 +110,17 @@
   }
 
   .savings-tag {
-    font-size: 0.7rem;
-    color: #4ade80;
-    font-weight: 600;
-    margin-top: 4px;
+    font-size: 0.75rem;
+    color: var(--mercadona-green);
+    background: rgba(0, 170, 85, 0.08);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-weight: 700;
+    margin-top: 6px;
   }
 }
 
 .chart-container {
-  background: rgba(30, 41, 59, 0.5);
+  background: white;
+  border: 1px solid var(--border-glass);
 }
