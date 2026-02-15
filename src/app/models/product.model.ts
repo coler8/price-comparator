@@ -1,8 +1,16 @@
+import { SupermarketName } from '../constants/supermarkets';
+
 export interface SupermarketPrice {
-  supermarket: 'Lidl' | 'Mercadona' | 'Carrefour';
+  supermarket: SupermarketName;
   price: number;
   available: boolean;
   link?: string;
+}
+
+export interface PriceHistoryEntry {
+  supermarket: string;
+  price: number;
+  date: string;
 }
 
 export interface Product {
@@ -12,5 +20,6 @@ export interface Product {
   image: string;
   category: string;
   prices: SupermarketPrice[];
-  unit: string; // e.g., 'kg', 'unidad', 'litro'
+  unit: string;
+  priceHistory: PriceHistoryEntry[];
 }

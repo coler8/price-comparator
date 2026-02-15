@@ -14,19 +14,19 @@ import {
   IonRow,
   IonCol,
   IonSpinner,
-  IonFab,
-  IonFabButton,
+  IonFooter,
   LoadingController,
   ToastController,
   ActionSheetController,
   AlertController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { personCircleOutline, sparkles, cameraOutline, camera, image, trashOutline } from 'ionicons/icons';
+import { personCircleOutline, sparkles, cameraOutline, camera, image, trashOutline, addOutline } from 'ionicons/icons';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { createWorker } from 'tesseract.js';
 import { ProductService } from '../services/product';
 import { Product } from '../models/product.model';
+import { SUPERMARKETS, SUPERMARKET_LOGOS } from '../constants/supermarkets';
 
 @Component({
   selector: 'app-home',
@@ -49,8 +49,7 @@ import { Product } from '../models/product.model';
     IonRow,
     IonCol,
     IonSpinner,
-    IonFab,
-    IonFabButton,
+    IonFooter,
   ],
 })
 export class HomePage {
@@ -90,7 +89,7 @@ export class HomePage {
   selectedCategory = signal('Todos');
 
   constructor() {
-    addIcons({ personCircleOutline, sparkles, cameraOutline, camera, image, trashOutline });
+    addIcons({ personCircleOutline, sparkles, cameraOutline, camera, image, trashOutline, addOutline });
   }
 
   async deleteProduct(productId: string, event: Event) {
@@ -123,14 +122,19 @@ export class HomePage {
       header: 'Subir Ticket',
       buttons: [
         {
-          text: 'Cámara',
+          text: 'Escanear Ticket (Cámara)',
           icon: 'camera',
           handler: () => this.processTicket(CameraSource.Camera),
         },
         {
-          text: 'Galería de fotos',
+          text: 'Cargar Ticket (Galería)',
           icon: 'image',
           handler: () => this.processTicket(CameraSource.Photos),
+        },
+        {
+          text: 'Añadir Producto Manualmente',
+          icon: 'add-outline',
+          handler: () => this.addProductManually(),
         },
         {
           text: 'Cancelar',
@@ -139,6 +143,123 @@ export class HomePage {
       ],
     });
     await actionSheet.present();
+  }
+
+  async addProductManually() {
+    const alert = await this.alertCtrl.create({
+      header: 'Nuevo Producto',
+      inputs: [
+        {
+          name: 'name',
+          type: 'text',
+          placeholder: 'Nombre del producto (ej. Arroz)'
+        },
+        {
+          name: 'category',
+          type: 'text',
+          placeholder: 'Categoría (ej. Despensa)'
+        },
+        {
+          name: 'unit',
+          type: 'text',
+          placeholder: 'Unidad (ej. kg, litro, unidad)',
+          value: 'unidad'
+        },
+        {
+          name: 'price',
+          type: 'number',
+          placeholder: 'Precio actual'
+        },
+        {
+          name: 'supermarket',
+          type: 'text',
+          placeholder: 'Supermercado (Mercadona, Lidl, Carrefour, Consum)',
+          value: SUPERMARKETS.MERCADONA
+        }
+      ],
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        },
+        {
+          text: 'Siguiente: Foto',
+          handler: (data) => {
+            if (data.name && data.price) {
+              this.captureProductPhotoForNewProduct(data);
+            } else {
+              this.showToast('Nombre y precio son obligatorios', 'warning');
+            }
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  async captureProductPhotoForNewProduct(productData: any) {
+    const actionSheet = await this.actionSheetCtrl.create({
+      header: 'Foto del Producto',
+      buttons: [
+        {
+          text: 'Cámara',
+          icon: 'camera',
+          handler: () => this.saveNewProduct(productData, CameraSource.Camera),
+        },
+        {
+          text: 'Galería',
+          icon: 'image',
+          handler: () => this.saveNewProduct(productData, CameraSource.Photos),
+        },
+        {
+          text: 'Omitir Foto',
+          handler: () => this.saveNewProduct(productData, null),
+        }
+      ]
+    });
+    await actionSheet.present();
+  }
+
+  async saveNewProduct(data: any, source: CameraSource | null) {
+    let imageUrl = 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400';
+
+    if (source) {
+      try {
+        const photo = await Camera.getPhoto({
+          quality: 90,
+          allowEditing: false,
+          resultType: CameraResultType.DataUrl,
+          source: source,
+        });
+        if (photo.dataUrl) imageUrl = photo.dataUrl;
+      } catch (e) {
+        console.warn('Photo cancelled or error', e);
+      }
+    }
+
+    const price = parseFloat(data.price);
+    const supermarket = data.supermarket || 'Otros';
+    const now = new Date().toISOString();
+
+    const newProduct = this.productService.addProduct({
+      name: data.name,
+      description: 'Producto añadido manualmente',
+      category: data.category || 'Otros',
+      unit: data.unit || 'unidad',
+      image: imageUrl,
+      prices: [
+        { supermarket: SUPERMARKETS.MERCADONA, price: supermarket === SUPERMARKETS.MERCADONA ? price : 0, available: supermarket === SUPERMARKETS.MERCADONA },
+        { supermarket: SUPERMARKETS.LIDL, price: supermarket === SUPERMARKETS.LIDL ? price : 0, available: supermarket === SUPERMARKETS.LIDL },
+        { supermarket: SUPERMARKETS.CARREFOUR, price: supermarket === SUPERMARKETS.CARREFOUR ? price : 0, available: supermarket === SUPERMARKETS.CARREFOUR },
+        { supermarket: SUPERMARKETS.CONSUM, price: supermarket === SUPERMARKETS.CONSUM ? price : 0, available: supermarket === SUPERMARKETS.CONSUM }
+      ],
+      priceHistory: [
+        { supermarket: supermarket, price: price, date: now }
+      ]
+    });
+
+    this.showToast('Producto añadido con éxito', 'success');
   }
 
   async processTicket(source: CameraSource) {
@@ -168,9 +289,11 @@ export class HomePage {
 
       // Logic to find supermarket
       let detectedSupermarket = '';
-      if (text.includes('mercadona')) detectedSupermarket = 'Mercadona';
-      else if (text.includes('lidl')) detectedSupermarket = 'Lidl';
-      else if (text.includes('carrefour')) detectedSupermarket = 'Carrefour';
+      const textLower = text.toLowerCase();
+      if (textLower.includes('mercadona')) detectedSupermarket = SUPERMARKETS.MERCADONA;
+      else if (textLower.includes('lidl')) detectedSupermarket = SUPERMARKETS.LIDL;
+      else if (textLower.includes('carrefour')) detectedSupermarket = SUPERMARKETS.CARREFOUR;
+      else if (textLower.includes('consum')) detectedSupermarket = SUPERMARKETS.CONSUM;
 
       if (!detectedSupermarket) {
         this.showToast('No se identificó el supermercado en el ticket.', 'warning');
@@ -234,6 +357,13 @@ export class HomePage {
             updatesCount++;
           } else {
             // New product detected!
+            const priceHistory = [
+              { supermarket: SUPERMARKETS.MERCADONA, price: detectedSupermarket === SUPERMARKETS.MERCADONA ? price : 0, date: new Date().toISOString() },
+              { supermarket: SUPERMARKETS.LIDL, price: detectedSupermarket === SUPERMARKETS.LIDL ? price : 0, date: new Date().toISOString() },
+              { supermarket: SUPERMARKETS.CARREFOUR, price: detectedSupermarket === SUPERMARKETS.CARREFOUR ? price : 0, date: new Date().toISOString() },
+              { supermarket: SUPERMARKETS.CONSUM, price: detectedSupermarket === SUPERMARKETS.CONSUM ? price : 0, date: new Date().toISOString() }
+            ].filter(h => h.price > 0);
+
             this.productService.addProduct({
               name: possibleName.charAt(0).toUpperCase() + possibleName.slice(1).toLowerCase(),
               description: `Producto detectado automáticamente desde ticket de ${detectedSupermarket}`,
@@ -242,21 +372,27 @@ export class HomePage {
               image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400',
               prices: [
                 {
-                  supermarket: 'Mercadona',
-                  price: detectedSupermarket === 'Mercadona' ? price : 0,
-                  available: detectedSupermarket === 'Mercadona'
+                  supermarket: SUPERMARKETS.MERCADONA,
+                  price: detectedSupermarket === SUPERMARKETS.MERCADONA ? price : 0,
+                  available: detectedSupermarket === SUPERMARKETS.MERCADONA
                 },
                 {
-                  supermarket: 'Lidl',
-                  price: detectedSupermarket === 'Lidl' ? price : 0,
-                  available: detectedSupermarket === 'Lidl'
+                  supermarket: SUPERMARKETS.LIDL,
+                  price: detectedSupermarket === SUPERMARKETS.LIDL ? price : 0,
+                  available: detectedSupermarket === SUPERMARKETS.LIDL
                 },
                 {
-                  supermarket: 'Carrefour',
-                  price: detectedSupermarket === 'Carrefour' ? price : 0,
-                  available: detectedSupermarket === 'Carrefour'
+                  supermarket: SUPERMARKETS.CARREFOUR,
+                  price: detectedSupermarket === SUPERMARKETS.CARREFOUR ? price : 0,
+                  available: detectedSupermarket === SUPERMARKETS.CARREFOUR
+                },
+                {
+                  supermarket: SUPERMARKETS.CONSUM,
+                  price: detectedSupermarket === SUPERMARKETS.CONSUM ? price : 0,
+                  available: detectedSupermarket === SUPERMARKETS.CONSUM
                 }
-              ]
+              ],
+              priceHistory: priceHistory
             });
             additionsCount++;
           }
@@ -294,5 +430,9 @@ export class HomePage {
 
   getCheapest(product: Product) {
     return this.productService.getCheapestSupermarket(product);
+  }
+
+  getSupermarketLogo(supermarket: string): string {
+    return SUPERMARKET_LOGOS[supermarket] || 'https://cdn-icons-ng.freepik.com/512/3225/3225191.png';
   }
 }

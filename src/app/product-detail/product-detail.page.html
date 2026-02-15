@@ -13,6 +13,10 @@
     <div class="product-header">
       <div class="product-image-large">
         <img [src]="p.image" [alt]="p.name" />
+        <ion-button class="change-photo-btn" (click)="changePhoto()" fill="clear">
+          <ion-icon name="camera-outline" slot="start"></ion-icon>
+          Cambiar foto
+        </ion-button>
       </div>
     </div>
     <div class="ion-padding content-body">
@@ -26,17 +30,15 @@
         @for (priceItem of p.prices; track priceItem.supermarket) {
         <div class="glass-card price-detail-card">
           <div class="supermarket-info">
-            <span
-              class="supermarket-tag"
-              [ngClass]="priceItem.supermarket.toLowerCase()"
-            >
+            <span class="supermarket-tag" [ngClass]="priceItem.supermarket.toLowerCase()">
               {{ priceItem.supermarket }}
             </span>
           </div>
           <div class="price-info">
-            <span class="actual-price"
-              >{{ priceItem.price | number : '1.2-2' }}€</span
-            >
+            <span class="actual-price">{{ priceItem.price | number : '1.2-2' }}€</span>
+            <ion-button fill="clear" size="small" (click)="editPrice(priceItem)">
+              <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
+            </ion-button>
             @if (getCheapest()?.supermarket === priceItem.supermarket) {
             <span class="savings-tag"> Mejor opción </span>
             }
@@ -45,67 +47,44 @@
         }
       </div>
 
-      @defer (on timer(500ms)) {
-      <!-- Comparison Chart Placeholder -->
+      @if (chartData(); as data) {
       <div class="glass-card chart-container ion-margin-top ion-padding">
         <h3 style="margin-top: 0; font-size: 1rem">Evolución de precios</h3>
-        <div
-          style="
-            height: 100px;
-            display: flex;
-            align-items: flex-end;
-            gap: 10px;
-            padding: 20px 0;
-          "
-        >
-          <div
-            style="
-              flex: 1;
-              height: 40%;
-              background: var(--secondary-gradient);
-              border-radius: 4px;
-            "
-          ></div>
-          <div
-            style="
-              flex: 1;
-              height: 60%;
-              background: var(--secondary-gradient);
-              border-radius: 4px;
-            "
-          ></div>
-          <div
-            style="
-              flex: 1;
-              height: 55%;
-              background: var(--secondary-gradient);
-              border-radius: 4px;
-            "
-          ></div>
-          <div
-            style="
-              flex: 1;
-              height: 80%;
-              background: var(--secondary-gradient);
-              border-radius: 4px;
-            "
-          ></div>
-          <div
-            style="
-              flex: 1;
-              height: 100%;
-              background: var(--primary-gradient);
-              border-radius: 4px;
-            "
-          ></div>
+
+        <div class="svg-container">
+          <svg [attr.viewBox]="'0 0 ' + data.width + ' ' + data.height" preserveAspectRatio="none">
+            <!-- Grid lines -->
+            <line x1="0" [attr.y1]="data.height * 0.25" [attr.x2]="data.width" [attr.y2]="data.height * 0.25"
+              stroke="#f1f5f9" stroke-width="1" />
+            <line x1="0" [attr.y1]="data.height * 0.5" [attr.x2]="data.width" [attr.y2]="data.height * 0.5"
+              stroke="#f1f5f9" stroke-width="1" />
+            <line x1="0" [attr.y1]="data.height * 0.75" [attr.x2]="data.width" [attr.y2]="data.height * 0.75"
+              stroke="#f1f5f9" stroke-width="1" />
+
+            @for (sm of data.supermarkets; track sm.name) {
+            <polyline fill="none" [attr.stroke]="sm.color" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round" [attr.points]="sm.points" class="chart-line" />
+            }
+          </svg>
         </div>
-        <p style="font-size: 0.7rem; color: #94a3b8; text-align: center">
-          Datos de los últimos 30 días
-        </p>
+
+        <div class="chart-legend">
+          @for (sm of data.supermarkets; track sm.name) {
+          <div class="legend-item">
+            <span class="legend-color" [style.background]="sm.color"></span>
+            <span class="legend-name">{{ sm.name }}</span>
+          </div>
+          }
+        </div>
+
+        <div class="chart-y-axis">
+          <span>{{ data.maxPrice | number:'1.2-2' }}€</span>
+          <span>{{ data.minPrice | number:'1.2-2' }}€</span>
+        </div>
       </div>
-      } @placeholder {
+      } @else {
       <div class="ion-padding ion-text-center">
-        <p>Preparando gráfica...</p>
+        <p>No hay historial de precios suficiente.</p>
       </div>
       }
     </div>

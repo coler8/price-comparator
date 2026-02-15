@@ -1,105 +1,73 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Product } from '../models/product.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProductService {
-  private products = signal<Product[]>([
-    {
-      id: '1',
-      name: 'Leche Entera 1L',
-      description: 'Leche de vaca entera de alta calidad.',
-      image: 'https://images.unsplash.com/photo-1563636619-e9108b9355ce?w=400',
-      category: 'Lácteos',
-      unit: 'litro',
-      prices: [
-        { supermarket: 'Mercadona', price: 0.95, available: true },
-        { supermarket: 'Lidl', price: 0.92, available: true },
-        { supermarket: 'Carrefour', price: 0.98, available: true }
-      ]
-    },
-    {
-      id: '2',
-      name: 'Aceite de Oliva Virgen Extra 1L',
-      description: 'Aceite de oliva virgen extra obtenido directamente de aceitunas.',
-      image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=400',
-      category: 'Aceites',
-      unit: 'litro',
-      prices: [
-        { supermarket: 'Mercadona', price: 9.45, available: true },
-        { supermarket: 'Lidl', price: 9.25, available: true },
-        { supermarket: 'Carrefour', price: 9.50, available: true }
-      ]
-    },
-    {
-      id: '3',
-      name: 'Arroz Redondo 1kg',
-      description: 'Arroz blanco de grano redondo, ideal para paellas.',
-      image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400',
-      category: 'Despensa',
-      unit: 'kg',
-      prices: [
-        { supermarket: 'Mercadona', price: 1.35, available: true },
-        { supermarket: 'Lidl', price: 1.30, available: true },
-        { supermarket: 'Carrefour', price: 1.40, available: true }
-      ]
-    },
-    {
-      id: '4',
-      name: 'Pechuga de Pollo 1kg',
-      description: 'Pechuga de pollo fresca, sin piel.',
-      image: 'https://images.unsplash.com/photo-1604503468506-a8da13d82791?w=400',
-      category: 'Carnicería',
-      unit: 'kg',
-      prices: [
-        { supermarket: 'Mercadona', price: 6.95, available: true },
-        { supermarket: 'Lidl', price: 6.75, available: true },
-        { supermarket: 'Carrefour', price: 7.10, available: true }
-      ]
-    },
-    {
-      id: '5',
-      name: 'Pan de Molde 450g',
-      description: 'Pan de molde blanco extra tierno.',
-      image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400',
-      category: 'Despensa',
-      unit: 'unidad',
-      prices: [
-        { supermarket: 'Mercadona', price: 1.15, available: true },
-        { supermarket: 'Lidl', price: 1.10, available: true },
-        { supermarket: 'Carrefour', price: 1.20, available: true }
-      ]
-    },
-    {
-      id: '6',
-      name: 'Huevos L 12 uds',
-      description: 'Huevos frescos de gallinas criadas en suelo.',
-      image: 'https://images.unsplash.com/photo-1506976785307-8732e854ad03?w=400',
-      category: 'Despensa',
-      unit: 'docena',
-      prices: [
-        { supermarket: 'Mercadona', price: 2.35, available: true },
-        { supermarket: 'Lidl', price: 2.25, available: true },
-        { supermarket: 'Carrefour', price: 2.45, available: true }
-      ]
-    },
-    {
-      id: '7',
-      name: 'Detergente Líquido 3L',
-      description: 'Detergente para lavadora con fragancia floral.',
-      image: 'https://images.unsplash.com/photo-1610557892470-55d9e80c0bce?w=400',
-      category: 'Limpieza',
-      unit: 'litro',
-      prices: [
-        { supermarket: 'Mercadona', price: 5.45, available: true },
-        { supermarket: 'Lidl', price: 5.25, available: true },
-        { supermarket: 'Carrefour', price: 5.60, available: true }
-      ]
-    }
-  ]);
+  private http = inject(HttpClient);
+  private products = signal<Product[]>([]);
+  private readonly STORAGE_KEY = 'price_comparator_products';
 
-  constructor() { }
+  constructor() {
+    this.initData();
+  }
+
+  private async initData() {
+    const savedData = localStorage.getItem(this.STORAGE_KEY);
+
+    if (savedData) {
+      const data = JSON.parse(savedData);
+      // Migrate existing data to include priceHistory if missing
+      const migratedData = data.map((p: Product) => {
+        if (!p.priceHistory) {
+          return { ...p, priceHistory: this.generateInitialHistory(p) };
+        }
+        return p;
+      });
+      this.products.set(migratedData);
+      if (JSON.stringify(data) !== JSON.stringify(migratedData)) {
+        this.saveToStorage(migratedData);
+      }
+    } else {
+      // First time: fetch from JSON and save to localStorage
+      this.http.get<Product[]>('assets/products.json').subscribe({
+        next: (data) => {
+          const productsWithHistory = data.map(p => ({
+            ...p,
+            priceHistory: this.generateInitialHistory(p)
+          }));
+          this.products.set(productsWithHistory);
+          this.saveToStorage(productsWithHistory);
+        },
+        error: (err) => console.error('Error loading products.json:', err)
+      });
+    }
+  }
+
+  private generateInitialHistory(product: Product) {
+    const history = [];
+    const now = new Date();
+    // Generate 5 entries for each supermarket with some randomness
+    for (const p of product.prices) {
+      for (let i = 4; i >= 0; i--) {
+        const date = new Date(now);
+        date.setDate(date.getDate() - (i * 7)); // One per week
+        const variance = (Math.random() - 0.5) * 0.2; // +/- 10%
+        history.push({
+          supermarket: p.supermarket,
+          price: +(p.price * (1 + variance)).toFixed(2),
+          date: date.toISOString()
+        });
+      }
+    }
+    return history;
+  }
+
+  private saveToStorage(products: Product[]) {
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(products));
+  }
 
   getProducts() {
     return this.products;
@@ -120,19 +88,31 @@ export class ProductService {
   }
 
   updateProductPrice(productId: string, supermarket: string, newPrice: number) {
-    this.products.update(products => products.map(p => {
-      if (p.id === productId) {
-        return {
-          ...p,
-          prices: p.prices.map(pr =>
-            pr.supermarket.toLowerCase() === supermarket.toLowerCase()
-              ? { ...pr, price: newPrice }
-              : pr
-          )
-        };
-      }
-      return p;
-    }));
+    this.products.update(products => {
+      const updatedProducts = products.map(p => {
+        if (p.id === productId) {
+          const newHistoryEntry = {
+            supermarket,
+            price: newPrice,
+            date: new Date().toISOString()
+          };
+
+          return {
+            ...p,
+            prices: p.prices.map(pr =>
+              pr.supermarket.toLowerCase() === supermarket.toLowerCase()
+                ? { ...pr, price: newPrice, available: true }
+                : pr
+            ),
+            priceHistory: [...(p.priceHistory || []), newHistoryEntry]
+          };
+        }
+        return p;
+      });
+
+      this.saveToStorage(updatedProducts);
+      return updatedProducts;
+    });
   }
 
   addProduct(product: Omit<Product, 'id'>) {
@@ -140,12 +120,33 @@ export class ProductService {
       ...product,
       id: Math.random().toString(36).substr(2, 9),
     };
-    this.products.update(products => [...products, newProduct]);
+    this.products.update(products => {
+      const updatedProducts = [...products, newProduct];
+      this.saveToStorage(updatedProducts);
+      return updatedProducts;
+    });
     return newProduct;
   }
 
   deleteProduct(id: string) {
-    this.products.update(products => products.filter(p => p.id !== id));
+    this.products.update(products => {
+      const updatedProducts = products.filter(p => p.id !== id);
+      this.saveToStorage(updatedProducts);
+      return updatedProducts;
+    });
+  }
+
+  updateProductImage(productId: string, imageDataUrl: string) {
+    this.products.update(products => {
+      const updatedProducts = products.map(p => {
+        if (p.id === productId) {
+          return { ...p, image: imageDataUrl };
+        }
+        return p;
+      });
+      this.saveToStorage(updatedProducts);
+      return updatedProducts;
+    });
   }
 }
 

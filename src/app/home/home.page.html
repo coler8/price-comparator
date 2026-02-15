@@ -9,129 +9,59 @@
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
-</ion-header>
 
-<ion-content [fullscreen]="true">
-  <div class="main-content-wrapper ion-padding">
-    <h1 style="font-weight: 700; margin-bottom: 20px">
-      Encuentra el mejor <br />
-      <span class="gradient-text">precio hoy</span>
-    </h1>
+  <div class="header-filters-wrapper">
+    <ion-searchbar animated="true" placeholder="¿Qué buscas?" (ionInput)="onSearch($event)">
+    </ion-searchbar>
 
-    <!-- Search Bar -->
-    <div class="glass-card" style="margin-bottom: 24px; padding: 4px">
-      <ion-searchbar
-        animated="true"
-        placeholder="¿Qué buscas?"
-        (ionInput)="onSearch($event)"
-        class="custom-searchbar"
-      >
-      </ion-searchbar>
-    </div>
-
-    <!-- Category Selector -->
-    <div class="category-scroll ion-margin-bottom">
+    <div class="category-scroll">
       @for (cat of categories; track cat) {
-      <div
-        [class.active]="selectedCategory() === cat"
-        class="category-chip"
-        (click)="selectedCategory.set(cat)"
-      >
+      <div [class.active]="selectedCategory() === cat" class="category-chip" (click)="selectedCategory.set(cat)">
         {{cat}}
       </div>
       }
     </div>
+  </div>
+</ion-header>
 
-    <!-- Product Grid -->
-    <h2 style="font-weight: 600; margin-top: 32px; margin-bottom: 16px">
-      Populares
-    </h2>
+<ion-content [fullscreen]="true">
+  <div class="main-content-wrapper ion-text-center">
+    <h1 style="font-weight: 700; margin-bottom: 20px">
+      Encuentra el mejor <span class="gradient-text">precio hoy</span>
+    </h1>
 
     <ion-grid fixed>
       <ion-row>
         @defer (on viewport) { @for (product of filteredProducts(); track
         product.id) {
-        <ion-col size="12" size-md="6">
-          <div
-            class="glass-card product-card"
-            [routerLink]="['/product-detail', product.id]"
-          >
-            <ion-row>
-              <ion-col size="4">
-                <div class="product-image-container">
-                  <img [src]="product.image" [alt]="product.name" />
-                </div>
-              </ion-col>
-              <ion-col size="8" class="ion-padding-start">
-                <div
-                  style="
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: flex-start;
-                  "
-                >
-                  <h3
-                    style="
-                      margin-top: 0;
-                      font-weight: 600;
-                      font-size: 1.1rem;
-                      flex: 1;
-                    "
-                  >
-                    {{product.name}}
-                  </h3>
-                  <ion-button
-                    fill="clear"
-                    color="danger"
-                    (click)="deleteProduct(product.id, $event)"
-                    style="
-                      --padding-start: 0;
-                      --padding-end: 0;
-                      margin-top: -8px;
-                      margin-right: -8px;
-                      height: 32px;
-                      width: 32px;
-                    "
-                  >
-                    <ion-icon
-                      slot="icon-only"
-                      name="trash-outline"
-                      style="font-size: 1.1rem"
-                    ></ion-icon>
-                  </ion-button>
-                </div>
-
-                <p style="font-size: 0.8rem; color: #94a3b8; margin: 4px 0">
-                  {{product.category}} • {{product.unit}}
-                </p>
-                <div class="price-list">
-                  @for (p of product.prices; track p.supermarket) {
-                  <div class="price-item">
-                    <span
-                      class="supermarket-tag"
-                      [ngClass]="p.supermarket.toLowerCase()"
-                    >
-                      {{p.supermarket}}
-                    </span>
-                    <span
-                      class="price-value"
-                      [class.cheapest]="getCheapest(product).supermarket === p.supermarket"
-                    >
-                      {{p.price | number:'1.2-2'}}€
-                    </span>
-                  </div>
-                  }
-                </div>
-                @if (getCheapest(product); as cheapest) {
-                <div class="cheapest-badge">
-                  <ion-icon name="sparkles" color="warning"></ion-icon>
-                  <span>
-                    Más barato en <strong>{{cheapest.supermarket}}</strong>
+        <ion-col size="6" size-md="4" size-lg="3">
+          <div class="glass-card product-card vertical" [routerLink]="['/product-detail', product.id]">
+            <div class="product-image-container">
+              <img [src]="product.image" [alt]="product.name" />
+              <ion-button fill="clear" color="danger" class="delete-btn-overlay" (click)="deleteProduct(product.id, $event)">
+                <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+              </ion-button>
+            </div>
+            
+            <div class="product-info">
+              <h3 class="product-name">
+                {{product.name}}
+              </h3>
+              <p class="product-meta">
+                {{product.unit}}
+              </p>
+              
+              <div class="price-list mini">
+                @for (p of product.prices; track p.supermarket) {
+                <div class="price-item">
+                  <img [src]="getSupermarketLogo(p.supermarket)" class="supermarket-logo" [alt]="p.supermarket" />
+                  <span class="price-value" [class.cheapest]="getCheapest(product).supermarket === p.supermarket">
+                    {{p.price | number:'1.2-2'}}€
                   </span>
                 </div>
                 }
-              </ion-col>
-            </ion-row>
+              </div>
+            </div>
           </div>
         </ion-col>
         } } @placeholder {
@@ -142,15 +72,15 @@
         }
       </ion-row>
     </ion-grid>
-
-    <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-      <ion-fab-button
-        (click)="scanTicket()"
-        class="premium-button"
-        style="--box-shadow: 0 10px 20px rgba(0, 170, 85, 0.4)"
-      >
-        <ion-icon name="camera-outline"></ion-icon>
-      </ion-fab-button>
-    </ion-fab>
+    <div style="height: 100px;"></div>
   </div>
 </ion-content>
+
+<ion-footer class="ion-no-border">
+  <div class="footer-scanner-container">
+    <ion-button (click)="scanTicket()" class="premium-button scan-main-btn" fill="solid">
+      <ion-icon slot="start" name="camera-outline"></ion-icon>
+      Escanear Ticket
+    </ion-button>
+  </div>
+</ion-footer>
