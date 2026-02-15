@@ -1,0 +1,87 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="cancel()" color="medium">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Revisar Productos</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="confirm()" color="primary" fill="clear" style="font-weight: 600;">
+        Listo
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="staging-header">
+    <p class="description">
+      Hemos detectado {{ stagingList().length }} productos. Puedes editarlos o eliminar los que no quieras añadir.
+    </p>
+  </div>
+
+  <ion-list lines="none">
+    @for (product of stagingList(); track $index) {
+    <div class="glass-item-wrapper ion-margin-bottom">
+      <ion-item class="glass-item">
+        <ion-thumbnail slot="start">
+          <img [src]="product.image" />
+        </ion-thumbnail>
+        <ion-label>
+          <div class="item-header">
+            <ion-input 
+              [(ngModel)]="product.name" 
+              (ionChange)="updateName($index, $event)"
+              class="name-input"
+              placeholder="Nombre del producto">
+            </ion-input>
+            <ion-button fill="clear" color="danger" (click)="removeProduct($index)" class="delete-btn">
+              <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+            </ion-button>
+          </div>
+          
+          <div class="item-details">
+            <div class="price-wrapper">
+              <ion-input 
+                type="number" 
+                [(ngModel)]="product.price" 
+                (ionChange)="updatePrice($index, $event)"
+                class="price-input"
+                label="Precio"
+                labelPlacement="stacked">
+              </ion-input>
+              <span class="currency">€</span>
+            </div>
+            
+            <ion-note color="primary" class="super-badge">
+              {{ product.supermarket }}
+            </ion-note>
+            
+            @if (product.isNew) {
+              <ion-note color="success" class="status-badge">Nuevo</ion-note>
+            } @else {
+              <ion-note color="warning" class="status-badge">Actualización</ion-note>
+            }
+          </div>
+        </ion-label>
+      </ion-item>
+    </div>
+    }
+  </ion-list>
+
+  @if (stagingList().length === 0) {
+    <div class="empty-state ion-text-center ion-padding">
+      <ion-icon name="checkmark-done-outline" style="font-size: 64px; color: var(--ion-color-medium);"></ion-icon>
+      <h3>No hay productos para revisar</h3>
+      <p>Todos los productos han sido procesados o eliminados.</p>
+      <ion-button (click)="cancel()" fill="outline">Cerrar</ion-button>
+    </div>
+  }
+</ion-content>
+
+<ion-footer class="ion-no-border ion-padding">
+  <ion-button expand="block" (click)="confirm()" class="confirm-button" [disabled]="stagingList().length === 0">
+    Confirmar {{ stagingList().length }} productos
+  </ion-button>
+</ion-footer>

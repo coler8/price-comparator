@@ -19,6 +19,7 @@ import { pencilOutline, cameraOutline, imageOutline } from 'ionicons/icons';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { ProductService } from '../services/product';
 import { Product, SupermarketPrice } from '../models/product.model';
+import { SUPERMARKET_LOGOS } from '../constants/supermarkets';
 
 @Component({
   selector: 'app-product-detail',
@@ -213,5 +214,9 @@ export class ProductDetailPage implements OnInit {
       position: 'bottom',
     });
     toast.present();
+  }
+
+  getSupermarketLogo(supermarket: string): string {
+    return SUPERMARKET_LOGOS[supermarket] || 'https://cdn-icons-ng.freepik.com/512/3225/3225191.png';
   }
 }

@@ -1,0 +1,122 @@
+.staging-header {
+  margin-bottom: 20px;
+  .description {
+    color: var(--ion-color-medium);
+    font-size: 0.95rem;
+    line-height: 1.4;
+  }
+}
+
+.glass-item-wrapper {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.glass-item {
+  --background: transparent;
+  --padding-start: 12px;
+  --padding-end: 8px;
+  --inner-padding-end: 8px;
+}
+
+ion-thumbnail {
+  --border-radius: 12px;
+  width: 56px;
+  height: 56px;
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+.item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  .name-input {
+    --padding-start: 0;
+    --padding-bottom: 4px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--ion-color-dark);
+    flex: 1;
+  }
+
+  .delete-btn {
+    --padding-end: 0;
+    margin-right: -4px;
+  }
+}
+
+.item-details {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  padding-bottom: 8px;
+
+  .price-wrapper {
+    display: flex;
+    align-items: flex-end;
+    width: 80px;
+
+    .price-input {
+      --padding-start: 0;
+      --padding-bottom: 0;
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: var(--ion-gradient-primary, #6a11cb);
+    }
+
+    .currency {
+      margin-bottom: 4px;
+      margin-left: -15px;
+      font-weight: 600;
+      color: var(--ion-color-medium);
+    }
+  }
+
+  .super-badge,
+  .status-badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: rgba(var(--ion-color-primary-rgb), 0.1);
+    margin-bottom: 4px;
+  }
+
+  .status-badge {
+    &[color="success"] {
+      background: rgba(var(--ion-color-success-rgb), 0.1);
+    }
+    &[color="warning"] {
+      background: rgba(var(--ion-color-warning-rgb), 0.1);
+    }
+  }
+}
+
+.confirm-button {
+  --border-radius: 12px;
+  --box-shadow: 0 4px 15px rgba(var(--ion-color-primary-rgb), 0.3);
+  font-weight: 700;
+  height: 52px;
+  background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+  border-radius: 12px;
+  color: white;
+}
+
+.empty-state {
+  margin-top: 60px;
+  h3 {
+    font-weight: 700;
+    margin-top: 20px;
+  }
+  p {
+    color: var(--ion-color-medium);
+    margin-bottom: 24px;
+  }
+}

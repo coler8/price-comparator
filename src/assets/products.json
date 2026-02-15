@@ -4,7 +4,7 @@
         "name": "Leche Entera 1L",
         "description": "Leche de vaca entera de alta calidad.",
         "image": "https://images.unsplash.com/photo-1563636619-e9108b9355ce?w=400",
-        "category": "Lácteos",
+        "category": "Proteínas",
         "unit": "litro",
         "prices": [ {"supermarket": "Consum", "price": 0, "available": true},
             {
@@ -61,7 +61,7 @@
         "name": "Aceite de Oliva Virgen Extra 1L",
         "description": "Aceite de oliva virgen extra obtenido directamente de aceitunas.",
         "image": "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=400",
-        "category": "Aceites",
+        "category": "Grasas",
         "unit": "litro",
         "prices": [ {"supermarket": "Consum", "price": 0, "available": true},
             {
@@ -118,7 +118,7 @@
         "name": "Arroz Redondo 1kg",
         "description": "Arroz blanco de grano redondo, ideal para paellas.",
         "image": "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400",
-        "category": "Despensa",
+        "category": "Carbohidratos",
         "unit": "kg",
         "prices": [ {"supermarket": "Consum", "price": 0, "available": true},
             {
@@ -175,7 +175,7 @@
         "name": "Pechuga de Pollo 1kg",
         "description": "Pechuga de pollo fresca, sin piel.",
         "image": "https://images.unsplash.com/photo-1604503468506-a8da13d82791?w=400",
-        "category": "Carnicería",
+        "category": "Proteínas",
         "unit": "kg",
         "prices": [ {"supermarket": "Consum", "price": 0, "available": true},
             {
@@ -232,7 +232,7 @@
         "name": "Pan de Molde 450g",
         "description": "Pan de molde blanco extra tierno.",
         "image": "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400",
-        "category": "Despensa",
+        "category": "Carbohidratos",
         "unit": "unidad",
         "prices": [ {"supermarket": "Consum", "price": 0, "available": true},
             {
@@ -289,7 +289,7 @@
         "name": "Huevos L 12 uds",
         "description": "Huevos frescos de gallinas criadas en suelo.",
         "image": "https://images.unsplash.com/photo-1506976785307-8732e854ad03?w=400",
-        "category": "Despensa",
+        "category": "Proteínas",
         "unit": "docena",
         "prices": [ {"supermarket": "Consum", "price": 0, "available": true},
             {
@@ -346,7 +346,7 @@
         "name": "Detergente Líquido 3L",
         "description": "Detergente para lavadora con fragancia floral.",
         "image": "https://images.unsplash.com/photo-1610557892470-55d9e80c0bce?w=400",
-        "category": "Limpieza",
+        "category": "Limpieza y Otros",
         "unit": "litro",
         "prices": [ {"supermarket": "Consum", "price": 0, "available": true},
             {

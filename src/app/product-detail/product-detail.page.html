@@ -8,11 +8,11 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  @if (product(); as p) {
+  @if (product(); as product) {
   <div class="animate__animated animate__fadeIn">
     <div class="product-header">
       <div class="product-image-large">
-        <img [src]="p.image" [alt]="p.name" />
+        <img [src]="product.image" [alt]="product.name" />
         <ion-button class="change-photo-btn" (click)="changePhoto()" fill="clear">
           <ion-icon name="camera-outline" slot="start"></ion-icon>
           Cambiar foto
@@ -20,19 +20,17 @@
       </div>
     </div>
     <div class="ion-padding content-body">
-      <span class="category-tag">{{ p.category }}</span>
-      <h1 class="product-title">{{ p.name }}</h1>
-      <p class="unit-text">Precio por {{ p.unit }}</p>
-      <p class="description">{{ p.description }}</p>
+      <span class="category-tag">{{ product.category }}</span>
+      <h1 class="product-title">{{ product.name }}</h1>
+      <p class="unit-text">Precio por {{ product.unit }}</p>
+      <p class="description">{{ product.description }}</p>
 
       <h2 class="comparison-title">Comparativa de Precios</h2>
       <div class="price-comparison-list">
-        @for (priceItem of p.prices; track priceItem.supermarket) {
+        @for (priceItem of product.prices; track priceItem.supermarket) {
         <div class="glass-card price-detail-card">
           <div class="supermarket-info">
-            <span class="supermarket-tag" [ngClass]="priceItem.supermarket.toLowerCase()">
-              {{ priceItem.supermarket }}
-            </span>
+            <img width="50" height="50"  [src]="getSupermarketLogo(priceItem.supermarket)" [alt]="priceItem.supermarket" />
           </div>
           <div class="price-info">
             <span class="actual-price">{{ priceItem.price | number : '1.2-2' }}€</span>

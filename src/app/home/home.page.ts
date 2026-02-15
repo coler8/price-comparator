@@ -19,6 +19,7 @@ import {
   ToastController,
   ActionSheetController,
   AlertController,
+  ModalController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { personCircleOutline, sparkles, cameraOutline, camera, image, trashOutline, addOutline } from 'ionicons/icons';
@@ -27,6 +28,7 @@ import { createWorker } from 'tesseract.js';
 import { ProductService } from '../services/product';
 import { Product } from '../models/product.model';
 import { SUPERMARKETS, SUPERMARKET_LOGOS } from '../constants/supermarkets';
+import { ProductStagingComponent, StagingProduct } from './product-staging/product-staging.component';
 
 @Component({
   selector: 'app-home',
@@ -47,10 +49,10 @@ import { SUPERMARKETS, SUPERMARKET_LOGOS } from '../constants/supermarkets';
     IonSearchbar,
     IonGrid,
     IonRow,
-    IonCol,
-    IonSpinner,
     IonFooter,
-  ],
+    IonSpinner,
+    IonCol
+],
 })
 export class HomePage {
   private productService = inject(ProductService);
@@ -58,6 +60,7 @@ export class HomePage {
   private toastCtrl = inject(ToastController);
   private actionSheetCtrl = inject(ActionSheetController);
   private alertCtrl = inject(AlertController);
+  private modalCtrl = inject(ModalController);
 
   searchQuery = signal('');
   products = this.productService.getProducts();
@@ -80,11 +83,11 @@ export class HomePage {
 
   categories = [
     'Todos',
-    'Lácteos',
-    'Aceites',
-    'Despensa',
-    'Carnicería',
-    'Limpieza',
+    'Carbohidratos',
+    'Proteínas',
+    'Grasas',
+    'Frutas y Verduras',
+    'Limpieza y Otros',
   ];
   selectedCategory = signal('Todos');
 
@@ -240,26 +243,89 @@ export class HomePage {
 
     const price = parseFloat(data.price);
     const supermarket = data.supermarket || 'Otros';
-    const now = new Date().toISOString();
-
-    const newProduct = this.productService.addProduct({
+    
+    const stagingProduct: StagingProduct = {
       name: data.name,
-      description: 'Producto añadido manualmente',
+      price: price,
+      supermarket: supermarket as any,
       category: data.category || 'Otros',
       unit: data.unit || 'unidad',
       image: imageUrl,
-      prices: [
-        { supermarket: SUPERMARKETS.MERCADONA, price: supermarket === SUPERMARKETS.MERCADONA ? price : 0, available: supermarket === SUPERMARKETS.MERCADONA },
-        { supermarket: SUPERMARKETS.LIDL, price: supermarket === SUPERMARKETS.LIDL ? price : 0, available: supermarket === SUPERMARKETS.LIDL },
-        { supermarket: SUPERMARKETS.CARREFOUR, price: supermarket === SUPERMARKETS.CARREFOUR ? price : 0, available: supermarket === SUPERMARKETS.CARREFOUR },
-        { supermarket: SUPERMARKETS.CONSUM, price: supermarket === SUPERMARKETS.CONSUM ? price : 0, available: supermarket === SUPERMARKETS.CONSUM }
-      ],
-      priceHistory: [
-        { supermarket: supermarket, price: price, date: now }
-      ]
+      isNew: true
+    };
+
+    this.openStagingModal([stagingProduct]);
+  }
+
+  async openStagingModal(products: StagingProduct[]) {
+    const modal = await this.modalCtrl.create({
+      component: ProductStagingComponent,
+      componentProps: {
+        products: products
+      }
     });
 
-    this.showToast('Producto añadido con éxito', 'success');
+    await modal.present();
+
+    const { data } = await modal.onWillDismiss();
+
+    if (data && data.length > 0) {
+      this.saveConfirmedProducts(data);
+    }
+  }
+
+  async saveConfirmedProducts(products: StagingProduct[]) {
+    const productsInDB = this.products();
+    let updatesCount = 0;
+    let additionsCount = 0;
+
+    for (const p of products) {
+      if (p.existingId) {
+        this.productService.updateProductPrice(p.existingId, p.supermarket as any, p.price);
+        updatesCount++;
+      } else {
+        // Double check if it exists now (e.g. if name was edited to match an existing one)
+        const existingProduct = productsInDB.find(dbProd => 
+          dbProd.name.toLowerCase() === p.name.toLowerCase()
+        );
+
+        if (existingProduct) {
+          this.productService.updateProductPrice(existingProduct.id, p.supermarket as any, p.price);
+          updatesCount++;
+        } else {
+          const now = new Date().toISOString();
+          const priceHistory = [
+            { supermarket: SUPERMARKETS.MERCADONA, price: p.supermarket === SUPERMARKETS.MERCADONA ? p.price : 0, date: now },
+            { supermarket: SUPERMARKETS.LIDL, price: p.supermarket === SUPERMARKETS.LIDL ? p.price : 0, date: now },
+            { supermarket: SUPERMARKETS.CARREFOUR, price: p.supermarket === SUPERMARKETS.CARREFOUR ? p.price : 0, date: now },
+            { supermarket: SUPERMARKETS.CONSUM, price: p.supermarket === SUPERMARKETS.CONSUM ? p.price : 0, date: now }
+          ].filter(h => h.price > 0);
+
+          this.productService.addProduct({
+            name: p.name,
+            description: p.isNew ? 'Producto añadido manualmente' : `Actualizado desde ticket`,
+            category: p.category,
+            unit: p.unit,
+            image: p.image,
+            prices: [
+              { supermarket: SUPERMARKETS.MERCADONA, price: p.supermarket === SUPERMARKETS.MERCADONA ? p.price : 0, available: p.supermarket === SUPERMARKETS.MERCADONA },
+              { supermarket: SUPERMARKETS.LIDL, price: p.supermarket === SUPERMARKETS.LIDL ? p.price : 0, available: p.supermarket === SUPERMARKETS.LIDL },
+              { supermarket: SUPERMARKETS.CARREFOUR, price: p.supermarket === SUPERMARKETS.CARREFOUR ? p.price : 0, available: p.supermarket === SUPERMARKETS.CARREFOUR },
+              { supermarket: SUPERMARKETS.CONSUM, price: p.supermarket === SUPERMARKETS.CONSUM ? p.price : 0, available: p.supermarket === SUPERMARKETS.CONSUM }
+            ],
+            priceHistory: priceHistory
+          });
+          additionsCount++;
+        }
+      }
+    }
+
+    if (updatesCount > 0 || additionsCount > 0) {
+      this.showToast(
+        `Acción completada: ${updatesCount} actualizados y ${additionsCount} nuevos añadidos.`,
+        'success'
+      );
+    }
   }
 
   async processTicket(source: CameraSource) {
@@ -302,8 +368,7 @@ export class HomePage {
 
       const productsInDB = this.products();
       const lines = ret.data.text.split('\n');
-      let updatesCount = 0;
-      let additionsCount = 0;
+      const detectedProducts: StagingProduct[] = [];
 
       for (const line of lines) {
         const lineText = line.trim();
@@ -347,63 +412,26 @@ export class HomePage {
             possibleName.toLowerCase().includes('descripción')) continue;
 
           // Check if it exists in DB
-          const existingProduct = productsInDB.find(p =>
+          const existingProduct = productsInDB.find((p: Product) =>
             possibleName.toLowerCase().includes(p.name.toLowerCase()) ||
             p.name.toLowerCase().includes(possibleName.toLowerCase())
           );
 
-          if (existingProduct) {
-            this.productService.updateProductPrice(existingProduct.id, detectedSupermarket, price);
-            updatesCount++;
-          } else {
-            // New product detected!
-            const priceHistory = [
-              { supermarket: SUPERMARKETS.MERCADONA, price: detectedSupermarket === SUPERMARKETS.MERCADONA ? price : 0, date: new Date().toISOString() },
-              { supermarket: SUPERMARKETS.LIDL, price: detectedSupermarket === SUPERMARKETS.LIDL ? price : 0, date: new Date().toISOString() },
-              { supermarket: SUPERMARKETS.CARREFOUR, price: detectedSupermarket === SUPERMARKETS.CARREFOUR ? price : 0, date: new Date().toISOString() },
-              { supermarket: SUPERMARKETS.CONSUM, price: detectedSupermarket === SUPERMARKETS.CONSUM ? price : 0, date: new Date().toISOString() }
-            ].filter(h => h.price > 0);
-
-            this.productService.addProduct({
-              name: possibleName.charAt(0).toUpperCase() + possibleName.slice(1).toLowerCase(),
-              description: `Producto detectado automáticamente desde ticket de ${detectedSupermarket}`,
-              category: 'Otros',
-              unit: 'unidad',
-              image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400',
-              prices: [
-                {
-                  supermarket: SUPERMARKETS.MERCADONA,
-                  price: detectedSupermarket === SUPERMARKETS.MERCADONA ? price : 0,
-                  available: detectedSupermarket === SUPERMARKETS.MERCADONA
-                },
-                {
-                  supermarket: SUPERMARKETS.LIDL,
-                  price: detectedSupermarket === SUPERMARKETS.LIDL ? price : 0,
-                  available: detectedSupermarket === SUPERMARKETS.LIDL
-                },
-                {
-                  supermarket: SUPERMARKETS.CARREFOUR,
-                  price: detectedSupermarket === SUPERMARKETS.CARREFOUR ? price : 0,
-                  available: detectedSupermarket === SUPERMARKETS.CARREFOUR
-                },
-                {
-                  supermarket: SUPERMARKETS.CONSUM,
-                  price: detectedSupermarket === SUPERMARKETS.CONSUM ? price : 0,
-                  available: detectedSupermarket === SUPERMARKETS.CONSUM
-                }
-              ],
-              priceHistory: priceHistory
-            });
-            additionsCount++;
-          }
+          detectedProducts.push({
+            name: existingProduct ? existingProduct.name : possibleName.charAt(0).toUpperCase() + possibleName.slice(1).toLowerCase(),
+            price: price,
+            supermarket: detectedSupermarket,
+            category: existingProduct ? existingProduct.category : 'Otros',
+            unit: existingProduct ? existingProduct.unit : 'unidad',
+            image: existingProduct ? existingProduct.image : 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400',
+            isNew: !existingProduct,
+            existingId: existingProduct?.id
+          });
         }
       }
 
-      if (updatesCount > 0 || additionsCount > 0) {
-        this.showToast(
-          `Ticket procesado: ${updatesCount} actualizados y ${additionsCount} nuevos añadidos.`,
-          'success'
-        );
+      if (detectedProducts.length > 0) {
+        this.openStagingModal(detectedProducts);
       } else {
         this.showToast('No se detectaron productos válidos.', 'warning');
       }
