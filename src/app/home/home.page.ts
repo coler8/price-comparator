@@ -22,13 +22,16 @@ import {
   ModalController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { personCircleOutline, sparkles, cameraOutline, camera, image, trashOutline, addOutline } from 'ionicons/icons';
+import { personCircleOutline, sparkles, cameraOutline, camera, image, trashOutline, addOutline, barcodeOutline, barcode } from 'ionicons/icons';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 import { createWorker } from 'tesseract.js';
 import { ProductService } from '../services/product';
+import { ExternalApiService } from '../services/external-api.service';
 import { Product } from '../models/product.model';
 import { SUPERMARKETS, SUPERMARKET_LOGOS } from '../constants/supermarkets';
 import { ProductStagingComponent, StagingProduct } from './product-staging/product-staging.component';
+import { ManualAddModalComponent } from './manual-add-modal/manual-add-modal.component';
 
 @Component({
   selector: 'app-home',
@@ -61,6 +64,7 @@ export class HomePage {
   private actionSheetCtrl = inject(ActionSheetController);
   private alertCtrl = inject(AlertController);
   private modalCtrl = inject(ModalController);
+  private externalApiService = inject(ExternalApiService);
 
   searchQuery = signal('');
   products = this.productService.getProducts();
@@ -92,7 +96,7 @@ export class HomePage {
   selectedCategory = signal('Todos');
 
   constructor() {
-    addIcons({ personCircleOutline, sparkles, cameraOutline, camera, image, trashOutline, addOutline });
+    addIcons({ personCircleOutline, sparkles, cameraOutline, camera, image, trashOutline, addOutline, barcodeOutline, barcode });
   }
 
   async deleteProduct(productId: string, event: Event) {
@@ -122,7 +126,7 @@ export class HomePage {
 
   async scanTicket() {
     const actionSheet = await this.actionSheetCtrl.create({
-      header: 'Subir Ticket',
+      header: 'Añadir Productos',
       buttons: [
         {
           text: 'Escanear Ticket (Cámara)',
@@ -133,6 +137,11 @@ export class HomePage {
           text: 'Cargar Ticket (Galería)',
           icon: 'image',
           handler: () => this.processTicket(CameraSource.Photos),
+        },
+        {
+          text: 'Escanear Código de Barras',
+          icon: 'barcode-outline',
+          handler: () => this.scanBarcode(),
         },
         {
           text: 'Añadir Producto Manualmente',
@@ -149,112 +158,38 @@ export class HomePage {
   }
 
   async addProductManually() {
-    const alert = await this.alertCtrl.create({
-      header: 'Nuevo Producto',
-      inputs: [
-        {
-          name: 'name',
-          type: 'text',
-          placeholder: 'Nombre del producto (ej. Arroz)'
-        },
-        {
-          name: 'category',
-          type: 'text',
-          placeholder: 'Categoría (ej. Despensa)'
-        },
-        {
-          name: 'unit',
-          type: 'text',
-          placeholder: 'Unidad (ej. kg, litro, unidad)',
-          value: 'unidad'
-        },
-        {
-          name: 'price',
-          type: 'number',
-          placeholder: 'Precio actual'
-        },
-        {
-          name: 'supermarket',
-          type: 'text',
-          placeholder: 'Supermercado (Mercadona, Lidl, Carrefour, Consum)',
-          value: SUPERMARKETS.MERCADONA
-        }
-      ],
-      buttons: [
-        {
-          text: 'Cancelar',
-          role: 'cancel'
-        },
-        {
-          text: 'Siguiente: Foto',
-          handler: (data) => {
-            if (data.name && data.price) {
-              this.captureProductPhotoForNewProduct(data);
-            } else {
-              this.showToast('Nombre y precio son obligatorios', 'warning');
-            }
-          }
-        }
-      ]
+    const modal = await this.modalCtrl.create({
+      component: ManualAddModalComponent
     });
 
-    await alert.present();
-  }
+    await modal.present();
 
-  async captureProductPhotoForNewProduct(productData: any) {
-    const actionSheet = await this.actionSheetCtrl.create({
-      header: 'Foto del Producto',
-      buttons: [
-        {
-          text: 'Cámara',
-          icon: 'camera',
-          handler: () => this.saveNewProduct(productData, CameraSource.Camera),
-        },
-        {
-          text: 'Galería',
-          icon: 'image',
-          handler: () => this.saveNewProduct(productData, CameraSource.Photos),
-        },
-        {
-          text: 'Omitir Foto',
-          handler: () => this.saveNewProduct(productData, null),
+    const { data } = await modal.onWillDismiss();
+
+    if (data && data.length > 0) {
+      const stagingProducts = data.map((p: StagingProduct) => {
+        const productsInDB = this.products();
+        const existingProduct = productsInDB.find(dbProd => 
+          dbProd.name.toLowerCase() === p.name.toLowerCase()
+        );
+
+        if (existingProduct) {
+          const supermarketPrice = existingProduct.prices.find(pr => 
+            pr.supermarket.toLowerCase() === (p.supermarket as string).toLowerCase()
+          );
+          
+          return {
+            ...p,
+            existingId: existingProduct.id,
+            isNew: false,
+            oldPrice: (supermarketPrice && supermarketPrice.available) ? supermarketPrice.price : undefined
+          };
         }
-      ]
-    });
-    await actionSheet.present();
-  }
-
-  async saveNewProduct(data: any, source: CameraSource | null) {
-    let imageUrl = 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400';
-
-    if (source) {
-      try {
-        const photo = await Camera.getPhoto({
-          quality: 90,
-          allowEditing: false,
-          resultType: CameraResultType.DataUrl,
-          source: source,
-        });
-        if (photo.dataUrl) imageUrl = photo.dataUrl;
-      } catch (e) {
-        console.warn('Photo cancelled or error', e);
-      }
+        return p;
+      });
+      
+      this.openStagingModal(stagingProducts);
     }
-
-    const price = parseFloat(data.price);
-    const supermarket = data.supermarket || 'Otros';
-    
-    const stagingProduct: StagingProduct = {
-      name: data.name,
-      price: price,
-      supermarket: supermarket as any,
-      category: data.category || 'Otros',
-      unit: data.unit || 'unidad',
-      image: imageUrl,
-      isNew: true
-    };
-
-    this.openStagingModal([stagingProduct]);
   }
 
   async openStagingModal(products: StagingProduct[]) {
@@ -313,7 +248,8 @@ export class HomePage {
               { supermarket: SUPERMARKETS.CARREFOUR, price: p.supermarket === SUPERMARKETS.CARREFOUR ? p.price : 0, available: p.supermarket === SUPERMARKETS.CARREFOUR },
               { supermarket: SUPERMARKETS.CONSUM, price: p.supermarket === SUPERMARKETS.CONSUM ? p.price : 0, available: p.supermarket === SUPERMARKETS.CONSUM }
             ],
-            priceHistory: priceHistory
+            priceHistory: priceHistory,
+            nutritionalInfo: p.nutritionalInfo
           });
           additionsCount++;
         }
@@ -326,6 +262,151 @@ export class HomePage {
         'success'
       );
     }
+  }
+
+  async scanBarcode() {
+    try {
+      // Check for permissions
+      const { camera } = await BarcodeScanner.checkPermissions();
+      if (camera !== 'granted') {
+        const { camera: newStatus } = await BarcodeScanner.requestPermissions();
+        if (newStatus !== 'granted') {
+          this.showToast('Se requiere permiso de cámara para escanear', 'warning');
+          return;
+        }
+      }
+
+      const { barcodes } = await BarcodeScanner.scan();
+      
+      if (barcodes.length > 0) {
+        const barcode = barcodes[0].displayValue;
+        this.processBarcode(barcode);
+      }
+    } catch (error) {
+      console.error('Error scanning barcode:', error);
+      this.showToast('Error al escanear código de barras', 'danger');
+    }
+  }
+
+  async processBarcode(barcode: string) {
+    const loading = await this.loadingCtrl.create({
+      message: 'Buscando producto en Open Food Facts...',
+      spinner: 'crescent',
+    });
+    await loading.present();
+
+    try {
+      const result = await this.externalApiService.getProductByBarcode(barcode);
+      await loading.dismiss();
+
+      if (result.status === 1 && result.product) {
+        const p = result.product;
+        const productName = p.product_name_es || p.product_name || 'Producto desconocido';
+        const image = p.image_front_url || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400';
+        const category = p.categories ? p.categories.split(',')[0].trim() : 'Otros';
+
+        const productsInDB = this.products();
+        const existingProduct = productsInDB.find(dbProd => 
+          dbProd.name.toLowerCase() === productName.toLowerCase()
+        );
+
+        const nutritionalInfo = {
+          calories: p.nutriments?.['energy-kcal_100g'],
+          fat: p.nutriments?.fat_100g,
+          saturatedFat: p.nutriments?.['saturated-fat_100g'],
+          carbs: p.nutriments?.carbohydrates_100g,
+          sugars: p.nutriments?.sugars_100g,
+          proteins: p.nutriments?.proteins_100g,
+          salt: p.nutriments?.salt_100g,
+          nutriscore: p.nutrition_grades,
+          nova: p.nova_group,
+          ingredients: p.ingredients_text_es || p.ingredients_text
+        };
+
+        // Now we need the price and supermarket
+        this.askPriceAndSupermarketForBarcodeProduct({
+          name: existingProduct ? existingProduct.name : productName,
+          image: existingProduct ? existingProduct.image : image,
+          category: existingProduct ? existingProduct.category : category,
+          unit: existingProduct ? existingProduct.unit : (p.quantity || 'unidad'),
+          existingId: existingProduct?.id,
+          nutritionalInfo: nutritionalInfo
+        });
+      } else {
+        this.showToast('Producto no encontrado en Open Food Facts', 'warning');
+      }
+    } catch (error) {
+      await loading.dismiss();
+      this.showToast('Error al conectar con Open Food Facts', 'danger');
+    }
+  }
+
+  async askPriceAndSupermarketForBarcodeProduct(productData: any) {
+    const alert = await this.alertCtrl.create({
+      header: 'Detalle de Compra',
+      subHeader: productData.name,
+      inputs: [
+        {
+          name: 'price',
+          type: 'number',
+          placeholder: 'Precio pagado'
+        },
+        {
+          name: 'supermarket',
+          type: 'text',
+          placeholder: 'Supermercado (Mercadona, Lidl, Consum...)',
+          value: SUPERMARKETS.MERCADONA
+        }
+      ],
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        },
+        {
+          text: 'Añadir',
+          handler: (data) => {
+            if (data.price) {
+              const selectedSupermarket = data.supermarket || 'Otros';
+              let oldPrice = undefined;
+              
+              if (productData.existingId) {
+                const productsInDB = this.products();
+                const existingProduct = productsInDB.find(p => p.id === productData.existingId);
+                if (existingProduct) {
+                  const supermarketPrice = existingProduct.prices.find(pr => 
+                    pr.supermarket.toLowerCase() === selectedSupermarket.toLowerCase()
+                  );
+                  if (supermarketPrice && supermarketPrice.available) {
+                    oldPrice = supermarketPrice.price;
+                  }
+                }
+              }
+
+              const stagingProduct: StagingProduct = {
+                name: productData.name,
+                price: parseFloat(data.price),
+                supermarket: selectedSupermarket,
+                category: productData.category,
+                unit: productData.unit,
+                image: productData.image,
+                isNew: !productData.existingId,
+                existingId: productData.existingId,
+                oldPrice: oldPrice,
+                nutritionalInfo: productData.nutritionalInfo
+              };
+              this.openStagingModal([stagingProduct]);
+            } else {
+              this.showToast('El precio es obligatorio', 'warning');
+              return false;
+            }
+            return true;
+          }
+        }
+      ]
+    });
+
+    await alert.present();
   }
 
   async processTicket(source: CameraSource) {
@@ -417,6 +498,16 @@ export class HomePage {
             p.name.toLowerCase().includes(possibleName.toLowerCase())
           );
 
+          let oldPrice = undefined;
+          if (existingProduct) {
+            const supermarketPrice = existingProduct.prices.find(pr => 
+              pr.supermarket.toLowerCase() === detectedSupermarket.toLowerCase()
+            );
+            if (supermarketPrice && supermarketPrice.available) {
+              oldPrice = supermarketPrice.price;
+            }
+          }
+
           detectedProducts.push({
             name: existingProduct ? existingProduct.name : possibleName.charAt(0).toUpperCase() + possibleName.slice(1).toLowerCase(),
             price: price,
@@ -425,7 +516,8 @@ export class HomePage {
             unit: existingProduct ? existingProduct.unit : 'unidad',
             image: existingProduct ? existingProduct.image : 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400',
             isNew: !existingProduct,
-            existingId: existingProduct?.id
+            existingId: existingProduct?.id,
+            oldPrice: oldPrice
           });
         }
       }

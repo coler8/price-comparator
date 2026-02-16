@@ -60,22 +60,62 @@ ion-thumbnail {
 
   .price-wrapper {
     display: flex;
-    align-items: flex-end;
-    width: 80px;
+    align-items: center;
+    gap: 8px;
 
-    .price-input {
-      --padding-start: 0;
-      --padding-bottom: 0;
-      font-weight: 700;
-      font-size: 1.2rem;
-      color: var(--ion-gradient-primary, #6a11cb);
+    .old-price-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 4px;
+
+      .old-price {
+        text-decoration: line-through;
+        font-size: 0.8rem;
+        color: var(--ion-color-medium);
+        font-weight: 500;
+      }
+
+      ion-icon {
+        font-size: 1.1rem;
+        &.up {
+          color: var(--ion-color-danger);
+        }
+        &.down {
+          color: var(--ion-color-success);
+        }
+        &.equal {
+          color: var(--ion-color-medium);
+        }
+      }
     }
 
-    .currency {
-      margin-bottom: 4px;
-      margin-left: -15px;
-      font-weight: 600;
-      color: var(--ion-color-medium);
+    .current-price {
+      display: flex;
+      align-items: flex-end;
+      width: 70px;
+
+      .price-input {
+        --padding-start: 0;
+        --padding-bottom: 0;
+        font-weight: 700;
+        font-size: 1.2rem;
+        color: var(--ion-gradient-primary, #6a11cb);
+
+        &.up {
+          --color: var(--ion-color-danger);
+        }
+        &.down {
+          --color: var(--ion-color-success);
+        }
+      }
+
+      .currency {
+        margin-bottom: 4px;
+        margin-left: -10px;
+        font-weight: 600;
+        color: var(--ion-color-medium);
+      }
     }
   }
 

@@ -148,6 +148,49 @@ export class ProductService {
       return updatedProducts;
     });
   }
+
+  updateProductNutritionalInfo(productId: string, info: any) {
+    this.products.update(products => {
+      const updatedProducts = products.map(p => {
+        if (p.id === productId) {
+          return { ...p, nutritionalInfo: info };
+        }
+        return p;
+      });
+      this.saveToStorage(updatedProducts);
+      return updatedProducts;
+    });
+  }
+
+  updateSupermarketImage(productId: string, supermarket: string, image: string) {
+    this.products.update(products => {
+      const updatedProducts = products.map(p => {
+        if (p.id === productId) {
+          return {
+            ...p,
+            prices: p.prices.map(pr =>
+              pr.supermarket === supermarket ? { ...pr, image } : pr
+            )
+          };
+        }
+        return p;
+      });
+      this.saveToStorage(updatedProducts);
+      return updatedProducts;
+    });
+  }
+  updateProductWeight(productId: string, weight: number, weightUnit: string, pieces?: number) {
+    this.products.update(products => {
+      const updatedProducts = products.map(p => {
+        if (p.id === productId) {
+          return { ...p, weight, weightUnit, pieces };
+        }
+        return p;
+      });
+      this.saveToStorage(updatedProducts);
+      return updatedProducts;
+    });
+  }
 }
 
 

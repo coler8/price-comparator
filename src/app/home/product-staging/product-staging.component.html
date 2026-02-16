@@ -43,15 +43,26 @@
           
           <div class="item-details">
             <div class="price-wrapper">
-              <ion-input 
-                type="number" 
-                [(ngModel)]="product.price" 
-                (ionChange)="updatePrice($index, $event)"
-                class="price-input"
-                label="Precio"
-                labelPlacement="stacked">
-              </ion-input>
-              <span class="currency">€</span>
+              @if (product.oldPrice !== undefined) {
+                <div class="old-price-container">
+                  <span class="old-price">{{ product.oldPrice | number:'1.2-2' }}€</span>
+                  <ion-icon 
+                    [name]="product.price > product.oldPrice ? 'trending-up-outline' : (product.price < product.oldPrice ? 'trending-down-outline' : 'remove-outline')"
+                    [class]="product.price > product.oldPrice ? 'up' : (product.price < product.oldPrice ? 'down' : 'equal')"
+                  ></ion-icon>
+                </div>
+              }
+              <div class="current-price">
+                <ion-input 
+                  type="number" 
+                  [(ngModel)]="product.price" 
+                  (ionChange)="updatePrice($index, $event)"
+                  [class]="product.oldPrice !== undefined ? (product.price > product.oldPrice ? 'price-input up' : (product.price < product.oldPrice ? 'price-input down' : 'price-input')) : 'price-input'"
+                  label="Precio"
+                  labelPlacement="stacked">
+                </ion-input>
+                <span class="currency">€</span>
+              </div>
             </div>
             
             <ion-note color="primary" class="super-badge">

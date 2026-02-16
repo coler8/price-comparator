@@ -5,6 +5,7 @@ export interface SupermarketPrice {
   price: number;
   available: boolean;
   link?: string;
+  image?: string;
 }
 
 export interface PriceHistoryEntry {
@@ -22,4 +23,19 @@ export interface Product {
   prices: SupermarketPrice[];
   unit: string;
   priceHistory: PriceHistoryEntry[];
+  weight?: number;
+  weightUnit?: string;
+  pieces?: number;
+  nutritionalInfo?: {
+    calories?: number;
+    fat?: number;
+    saturatedFat?: number;
+    carbs?: number;
+    sugars?: number;
+    proteins?: number;
+    salt?: number;
+    nutriscore?: string;
+    nova?: number;
+    ingredients?: string;
+  };
 }

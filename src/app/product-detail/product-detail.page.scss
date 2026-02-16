@@ -86,8 +86,33 @@ ion-header {
 .unit-text {
   color: var(--text-muted);
   font-size: 0.95rem;
-  margin-bottom: 24px;
+  margin-bottom: 12px;
   font-weight: 500;
+}
+
+.ingredients-box {
+  background: var(--ion-color-step-50);
+  padding: 16px;
+  border-radius: 16px;
+  margin-bottom: 24px;
+  
+  .ingredients-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--ion-color-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .ingredients-content {
+    font-size: 0.95rem;
+    color: var(--text-main);
+    line-height: 1.5;
+    margin: 0;
+    opacity: 0.9;
+  }
 }
 
 .description {
@@ -118,10 +143,57 @@ ion-header {
   justify-content: space-between;
   align-items: center;
 
-  .actual-price {
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: var(--text-main);
+  .supermarket-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: 100px;
+
+    .supermarket-image-container {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      
+      .supermarket-product-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 12px;
+        border: 1px solid var(--border-glass);
+      }
+
+      .supermarket-logo-mini {
+        position: absolute;
+        bottom: -5px;
+        right: -5px;
+        border-radius: 50%;
+        background: white;
+        padding: 2px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+
+      .sm-photo-btn {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        --padding-start: 4px;
+        --padding-end: 4px;
+        height: 32px;
+        --color: var(--ion-color-primary);
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(4px);
+        border-radius: 50%;
+        margin: 0;
+      }
+    }
+
+    .supermarket-name {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-align: center;
+    }
   }
 
   .price-info {
@@ -131,6 +203,32 @@ ion-header {
     align-items: flex-end;
   }
 
+  .price-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+
+    .actual-price {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .unit-prices {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      margin-top: 2px;
+    }
+
+    .unit-price-sub {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      line-height: 1.2;
+    }
+  }
+
   .savings-tag {
     font-size: 0.75rem;
     color: var(--mercadona-green);
@@ -138,7 +236,6 @@ ion-header {
     padding: 2px 8px;
     border-radius: 6px;
     font-weight: 700;
-    margin-top: 6px;
   }
 }
 
@@ -146,62 +243,94 @@ ion-header {
   background: white;
   border: 1px solid var(--border-glass);
   position: relative;
-  padding-bottom: 40px !important;
+  padding-bottom: 20px !important;
 
-  .svg-container {
+  .chart-wrapper {
     width: 100%;
-    height: 150px;
-    margin-top: 20px;
+    height: 220px;
+    margin-top: 10px;
+  }
+}
 
-    svg {
-      width: 100%;
-      height: 100%;
-      overflow: visible;
+/* Nutrition Styles */
+.nutrition-button-container {
+  .nutrition-btn {
+    --border-radius: 12px;
+    --border-width: 2px;
+    height: 54px;
+    font-weight: 600;
+    --color: var(--ion-color-primary);
+    margin-bottom: 0px;
+    
+    ion-badge {
+      font-size: 0.9rem;
+      padding: 4px 8px;
+      border-radius: 8px;
     }
   }
+}
 
-  .chart-line {
-    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
-    transition: all 0.3s ease;
-  }
+.modal-body {
+  padding-bottom: 30px;
+}
 
-  .chart-legend {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-top: 20px;
-    flex-wrap: wrap;
-
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-
-      .legend-color {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-      }
-
-      .legend-name {
-        font-size: 0.75rem;
-        font-weight: 600;
-        color: var(--text-muted);
-      }
-    }
-  }
-
-  .chart-y-axis {
-    position: absolute;
-    left: 10px;
-    top: 50px;
-    bottom: 80px;
+.quick-stats {
+  background: var(--ion-color-step-50);
+  border-radius: 20px;
+  padding: 8px;
+  
+  .stat-card {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    font-size: 0.65rem;
-    color: #94a3b8;
-    font-weight: 600;
-    pointer-events: none;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border-radius: 15px;
+    padding: 12px 8px;
+    height: 100%;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    
+    .stat-value {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--ion-color-dark);
+    }
+    
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--ion-color-medium);
+      font-weight: 600;
+      margin-top: 4px;
+    }
+    
+    ion-badge {
+      font-size: 1rem;
+      padding: 4px 10px;
+    }
+  }
+}
+
+.nutrition-edit-list {
+  background: transparent;
+  ion-item {
+    --padding-start: 0;
+    --inner-padding-end: 0;
+    --background: transparent;
+    margin-bottom: 8px;
+    
+    ion-label {
+      font-weight: 600 !important;
+      color: var(--ion-color-primary) !important;
+      margin-bottom: 8px !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+    
+    ion-input, ion-textarea {
+      background: var(--ion-color-step-50);
+      border-radius: 10px;
+      padding: 12px !important;
+      --padding-start: 12px;
+    }
   }
 }

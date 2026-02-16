@@ -19,7 +19,7 @@ import {
   IonNote,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { trashOutline, checkmarkDoneOutline, closeOutline } from 'ionicons/icons';
+import { trashOutline, checkmarkDoneOutline, closeOutline, trendingUpOutline, trendingDownOutline, removeOutline } from 'ionicons/icons';
 import { SupermarketName } from '../../constants/supermarkets';
 
 export interface StagingProduct {
@@ -31,6 +31,8 @@ export interface StagingProduct {
   image: string;
   isNew: boolean;
   existingId?: string;
+  oldPrice?: number;
+  nutritionalInfo?: any;
 }
 
 @Component({
@@ -63,7 +65,7 @@ export class ProductStagingComponent {
   stagingList = signal<StagingProduct[]>([]);
 
   constructor(private modalCtrl: ModalController) {
-    addIcons({ trashOutline, checkmarkDoneOutline, closeOutline });
+    addIcons({ trashOutline, checkmarkDoneOutline, closeOutline, trendingUpOutline, trendingDownOutline, removeOutline });
   }
 
   ngOnInit() {

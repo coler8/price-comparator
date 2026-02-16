@@ -13,7 +13,11 @@
     <div class="product-header">
       <div class="product-image-large">
         <img [src]="product.image" [alt]="product.name" />
-        <ion-button class="change-photo-btn" (click)="changePhoto()" fill="clear">
+        <ion-button
+          class="change-photo-btn"
+          (click)="changePhoto()"
+          fill="clear"
+        >
           <ion-icon name="camera-outline" slot="start"></ion-icon>
           Cambiar foto
         </ion-button>
@@ -23,61 +27,179 @@
       <span class="category-tag">{{ product.category }}</span>
       <h1 class="product-title">{{ product.name }}</h1>
       <p class="unit-text">Precio por {{ product.unit }}</p>
+      @if (product.nutritionalInfo?.ingredients) {
+      <p>{{ product.nutritionalInfo?.ingredients }}</p>
+      }
+
+      <div class="nutrition-button-container ion-margin-top ion-margin-bottom">
+        <ion-button
+          expand="block"
+          fill="outline"
+          (click)="openNutritionModal()"
+          class="nutrition-btn"
+        >
+          <ion-icon name="fitness-outline" slot="start"></ion-icon>
+          Información Nutricional
+        </ion-button>
+      </div>
+
       <p class="description">{{ product.description }}</p>
+
+      <ion-modal
+        [isOpen]="isNutritionModalOpen()"
+        (didDismiss)="isNutritionModalOpen.set(false)"
+        [initialBreakpoint]="0.75"
+        [breakpoints]="[0, 0.5, 0.75, 0.9]"
+      >
+        <ng-template>
+          <ion-header class="ion-no-border">
+            <ion-toolbar>
+              <ion-title>Nutrición e Ingredientes</ion-title>
+              <ion-buttons slot="end">
+                <ion-button (click)="isNutritionModalOpen.set(false)"
+                  >Cerrar</ion-button
+                >
+              </ion-buttons>
+            </ion-toolbar>
+          </ion-header>
+          <ion-content class="ion-padding">
+            <div class="modal-body">
+              <h3
+                class="ion-padding-horizontal"
+                style="font-weight: 700; margin-top: 20px"
+              >
+                Valores Nutricionales
+              </h3>
+              <ion-list lines="inset" class="nutrition-edit-list">
+                <ion-item>
+                  <ion-label position="stacked">Calorías (kcal)</ion-label>
+                  <ion-input
+                    type="number"
+                    [(ngModel)]="editedNutrition().calories"
+                  ></ion-input>
+                </ion-item>
+                <ion-item>
+                  <ion-label position="stacked">Proteínas (g)</ion-label>
+                  <ion-input
+                    type="number"
+                    [(ngModel)]="editedNutrition().proteins"
+                  ></ion-input>
+                </ion-item>
+                <ion-item>
+                  <ion-label position="stacked">Carbohidratos (g)</ion-label>
+                  <ion-input
+                    type="number"
+                    [(ngModel)]="editedNutrition().carbs"
+                  ></ion-input>
+                </ion-item>
+                <ion-item>
+                  <ion-label position="stacked">Azúcares (g)</ion-label>
+                  <ion-input
+                    type="number"
+                    [(ngModel)]="editedNutrition().sugars"
+                  ></ion-input>
+                </ion-item>
+                <ion-item>
+                  <ion-label position="stacked">Grasas (g)</ion-label>
+                  <ion-input
+                    type="number"
+                    [(ngModel)]="editedNutrition().fat"
+                  ></ion-input>
+                </ion-item>
+                <ion-item>
+                  <ion-label position="stacked">Sal (g)</ion-label>
+                  <ion-input
+                    type="number"
+                    [(ngModel)]="editedNutrition().salt"
+                  ></ion-input>
+                </ion-item>
+                <ion-item>
+                  <ion-label position="stacked">Ingredientes</ion-label>
+                  <ion-textarea
+                    rows="4"
+                    [(ngModel)]="editedNutrition().ingredients"
+                  ></ion-textarea>
+                </ion-item>
+              </ion-list>
+
+              <div class="ion-padding-vertical">
+                <ion-button expand="block" (click)="saveNutritionalInfo()">
+                  Guardar Cambios
+                </ion-button>
+              </div>
+            </div>
+          </ion-content>
+        </ng-template>
+      </ion-modal>
 
       <h2 class="comparison-title">Comparativa de Precios</h2>
       <div class="price-comparison-list">
         @for (priceItem of product.prices; track priceItem.supermarket) {
         <div class="glass-card price-detail-card">
           <div class="supermarket-info">
-            <img width="50" height="50"  [src]="getSupermarketLogo(priceItem.supermarket)" [alt]="priceItem.supermarket" />
+            <div class="supermarket-image-container">
+              <img
+                width="80"
+                height="80"
+                [src]="priceItem.image || product.image"
+                [alt]="priceItem.supermarket"
+                class="supermarket-product-img"
+              />
+              <img
+                width="24"
+                height="24"
+                [src]="getSupermarketLogo(priceItem.supermarket)"
+                [alt]="priceItem.supermarket"
+                class="supermarket-logo-mini"
+              />
+              <ion-button
+                class="sm-photo-btn"
+                (click)="changeSupermarketPhoto(priceItem)"
+                fill="clear"
+              >
+                <ion-icon name="camera-outline"></ion-icon>
+              </ion-button>
+            </div>
+            <span class="supermarket-name">{{ priceItem.supermarket }}</span>
           </div>
-          <div class="price-info">
-            <span class="actual-price">{{ priceItem.price | number : '1.2-2' }}€</span>
-            <ion-button fill="clear" size="small" (click)="editPrice(priceItem)">
-              <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
-            </ion-button>
+          <div>
             @if (getCheapest()?.supermarket === priceItem.supermarket) {
             <span class="savings-tag"> Mejor opción </span>
             }
+          </div>
+          <div class="price-info">
+            <div class="price-stack">
+              <span class="actual-price"
+                >{{ priceItem.price | number : '1.2-2' }}€</span
+              >
+              @if (getUnitPrice(priceItem.price); as units) {
+              <div class="unit-prices">
+                @if (units.kgL) {
+                <span class="unit-price-sub">{{ units.kgL }}</span>
+                } @if (units.piece) {
+                <span class="unit-price-sub">{{ units.piece }}</span>
+                }
+              </div>
+              }
+            </div>
+            <ion-button
+              fill="clear"
+              size="small"
+              (click)="editPrice(priceItem)"
+            >
+              <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
+            </ion-button>
           </div>
         </div>
         }
       </div>
 
-      @if (chartData(); as data) {
+      @if (chartData()) {
       <div class="glass-card chart-container ion-margin-top ion-padding">
         <h3 style="margin-top: 0; font-size: 1rem">Evolución de precios</h3>
 
-        <div class="svg-container">
-          <svg [attr.viewBox]="'0 0 ' + data.width + ' ' + data.height" preserveAspectRatio="none">
-            <!-- Grid lines -->
-            <line x1="0" [attr.y1]="data.height * 0.25" [attr.x2]="data.width" [attr.y2]="data.height * 0.25"
-              stroke="#f1f5f9" stroke-width="1" />
-            <line x1="0" [attr.y1]="data.height * 0.5" [attr.x2]="data.width" [attr.y2]="data.height * 0.5"
-              stroke="#f1f5f9" stroke-width="1" />
-            <line x1="0" [attr.y1]="data.height * 0.75" [attr.x2]="data.width" [attr.y2]="data.height * 0.75"
-              stroke="#f1f5f9" stroke-width="1" />
-
-            @for (sm of data.supermarkets; track sm.name) {
-            <polyline fill="none" [attr.stroke]="sm.color" stroke-width="3" stroke-linecap="round"
-              stroke-linejoin="round" [attr.points]="sm.points" class="chart-line" />
-            }
-          </svg>
-        </div>
-
-        <div class="chart-legend">
-          @for (sm of data.supermarkets; track sm.name) {
-          <div class="legend-item">
-            <span class="legend-color" [style.background]="sm.color"></span>
-            <span class="legend-name">{{ sm.name }}</span>
-          </div>
-          }
-        </div>
-
-        <div class="chart-y-axis">
-          <span>{{ data.maxPrice | number:'1.2-2' }}€</span>
-          <span>{{ data.minPrice | number:'1.2-2' }}€</span>
+        <div class="chart-wrapper" style="height: 200px; position: relative">
+          <canvas #priceChart></canvas>
         </div>
       </div>
       } @else {
